@@ -20,13 +20,22 @@ class AppSignatureHelper(context: Context) : ContextWrapper(context) {
         return try {
             val packageName = packageName
             val packageManager = packageManager
-            val signatures = packageManager.getPackageInfo(packageName,
-                    PackageManager.GET_SIGNATURES).signatures
-            signatures.mapNotNull { hash(packageName, it.toCharsString()) }
-        } catch (e: PackageManager.NameNotFoundException) {
+
+            val packageInfo = packageManager.getPackageInfo(
+                packageName,
+                PackageManager.GET_SIGNING_CERTIFICATES
+            )
+
+            val signatures = packageInfo.signingInfo.apkContentsSigners
+            signatures.mapNotNull { sig ->
+                hash(packageName, sig.toCharsString())
+            }
+
+        } catch (e: Exception) {
             emptyList()
         }
     }
+
 
     private fun hash(packageName: String, signature: String): String? {
         val appInfo = "$packageName $signature"
