@@ -18,19 +18,20 @@ class AppSignatureHelper(context: Context) : ContextWrapper(context) {
 
     fun getAppSignatures(): List<String> {
         return try {
-            val packageName = packageName
-            val packageManager = packageManager
+            val pm = packageManager
+            val pkg = packageName
 
-            val packageInfo = packageManager.getPackageInfo(
-                packageName,
+            val packageInfo = pm.getPackageInfo(
+                pkg,
                 PackageManager.GET_SIGNING_CERTIFICATES
             )
 
-            val signatures = packageInfo.signingInfo.apkContentsSigners
-            signatures.mapNotNull { sig ->
-                hash(packageName, sig.toCharsString())
-            }
+            val signingInfo = packageInfo.signingInfo ?: return emptyList()
+            val signatures = signingInfo.apkContentsSigners ?: return emptyList()
 
+            signatures.mapNotNull { sig ->
+                hash(pkg, sig.toCharsString())
+            }
         } catch (e: Exception) {
             emptyList()
         }
